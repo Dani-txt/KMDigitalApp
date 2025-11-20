@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
@@ -22,8 +23,11 @@ import com.example.myautoo.R
 @Composable
 @Preview
 fun BottomNavBar(
+    onHomeClick: () -> Unit = {},
+    onCartClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
     modifier: Modifier = Modifier
+
 ) {
     Surface(
         modifier = modifier,
@@ -41,32 +45,33 @@ fun BottomNavBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.SpaceAround, // Usando SpaceAround para alinear
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.btn_1),
-                    contentDescription = "Botón 1",
-                    tint = Color.White
-                )
+                IconButton(onClick = onHomeClick) {
+                    Icon(
+                        painter = painterResource(R.drawable.btn_1),
+                        contentDescription = "Inicio",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
-                Icon(
-                    painter = painterResource(R.drawable.btn_2),
-                    contentDescription = "Botón 2",
-                    tint = Color.White
-                )
-
-                Icon(
-                    painter = painterResource(R.drawable.btn_3),
-                    contentDescription = "Botón 3",
-                    tint = Color.White
-                )
+                IconButton(onClick = onCartClick) {
+                    Icon(
+                        painter = painterResource(R.drawable.btn_3),
+                        contentDescription = "Carrito",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
                 IconButton(onClick = onProfileClick) {
                     Icon(
                         painter = painterResource(R.drawable.btn_4),
                         contentDescription = "Perfil",
-                        tint = Color.White
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }

@@ -1,60 +1,54 @@
 package com.example.myautoo.ui.viewModel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myautoo.data.model.CarModel
-import androidx.compose.runtime.State
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.example.myautoo.data.remote.dto.VehiculoDto
+import com.example.myautoo.data.repository.VehiculoRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-class CarViewModel: ViewModel() {
-    private val _cars = mutableStateOf<List<CarModel>>(emptyList())
-    val cars: State<List<CarModel>> = _cars
+class CarViewModel : ViewModel() {
 
-    private val _isLoading = mutableStateOf(true)
-    val isLoading: State<Boolean> = _isLoading
+    private val repo = VehiculoRepository()
 
-    private val _error = mutableStateOf<String?>(null)
-    val error: State<String?> = _error
+    private val _cars = MutableStateFlow<List<VehiculoDto>>(emptyList())
+    val cars: StateFlow<List<VehiculoDto>> = _cars.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            fetchCars()
-        }
+    private val _searchText = MutableStateFlow("")
+    val searchText = _searchText.asStateFlow()
+
+    val filteredCars = combine(_cars, _searchText) { cars, text ->
+        if (text.isBlank()) cars
+        else cars.filter { it.nombre.contains(text, ignoreCase = true) }
     }
 
-    private fun fetchCars() {
-        try {
-            val ref = FirebaseDatabase.getInstance().getReference("Cars")
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading = _isLoading.asStateFlow()
 
-            ref.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val temp = mutableListOf<CarModel>()
-                    for (child in snapshot.children) {
-                        try {
-                            child.getValue(CarModel::class.java)?.let {
-                                temp.add(it)
-                            }
-                        } catch (e: Exception) {
-                            _error.value = "Error parsing car data: ${e.message}"
-                        }
-                    }
-                    _cars.value = temp
-                    _isLoading.value = false
-                }
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
 
-                override fun onCancelled(error: DatabaseError) {
-                    _isLoading.value = false
-                    _error.value = "Firebase error: ${error.message}"
-                }
-            })
-        } catch (e: Exception) {
-            _isLoading.value = false
-            _error.value = "Initialization error: ${e.message}"
+    init {
+        loadCars()
+    }
+
+    fun onSearchTextChanged(text: String) {
+        _searchText.value = text
+    }
+
+    fun loadCars() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _cars.value = repo.getVehiculos()
+            } catch (e: Exception) {
+                _error.value = "Error loading cars: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }

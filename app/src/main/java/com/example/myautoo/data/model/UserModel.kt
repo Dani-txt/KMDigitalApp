@@ -1,4 +1,4 @@
-package com.example.myautoo.data.model 
+package com.example.myautoo.data.model
 
 data class UserModel(
     val email: String = "",

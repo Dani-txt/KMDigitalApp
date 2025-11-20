@@ -18,10 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.example.myautoo.data.model.CategoryModel
+import com.example.myautoo.data.remote.dto.MarcaDto
+
 @Composable
 fun CategoryList(
-    categories: List<CategoryModel>,
+    categories: List<MarcaDto>,
     modifier: Modifier = Modifier
 ){
     LazyRow(
@@ -41,13 +42,13 @@ fun CategoryList(
                     ),
                     contentAlignment = Alignment.Center
                 ){
-                    Image(painter = rememberAsyncImagePainter(category.picUrl),
+                    Image(painter = rememberAsyncImagePainter(category.imagenMarca),
                         contentDescription = null,
                         modifier = Modifier.size(40.dp)
                         )
                 }
                 Text(
-                    text = category.title,
+                    text = category.nombre,
                     color = Color.Black,
                     fontSize = 12.sp,
                     modifier= Modifier.padding(top = 4.dp)

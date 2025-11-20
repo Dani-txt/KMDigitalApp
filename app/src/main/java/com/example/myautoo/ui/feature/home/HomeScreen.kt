@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,22 +24,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myautoo.data.model.CarModel
+import com.example.myautoo.data.remote.dto.VehiculoDto
 import com.example.myautoo.ui.viewModel.CarViewModel
 import com.example.myautoo.ui.viewModel.CategoryViewModel
 
 @Composable
 fun MainScreen(
     onProfileClick: () -> Unit,
-    onCarClick: (CarModel) -> Unit,
+    onCarClick: (VehiculoDto) -> Unit,
+    onCartClick: () -> Unit,
     carViewModel: CarViewModel,
-    categoryViewModel: CategoryViewModel
+    categoryViewModel: CategoryViewModel,
 ) {
-    val categories by categoryViewModel.categories
-    val isLoadingCategory by categoryViewModel.isLoading
-    val cars by carViewModel.cars
-    val isLoadingCars by carViewModel.isLoading
-    val error by carViewModel.error
+    val categories = categoryViewModel.categories.value
+    val isLoadingCategory = categoryViewModel.isLoading.value
+
+    val cars by carViewModel.cars.collectAsState()
+    val isLoadingCars by carViewModel.isLoading.collectAsState()
+    val error by carViewModel.error.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -47,42 +50,48 @@ fun MainScreen(
                 .background(Color(0xffb0b0b0))
         ) {
             item {
-                HeaderSection(username = "pirula", onBellClick = {})
+                HeaderSection(carViewModel = carViewModel)
             }
+
             item {
-                SearchSection()
-            }
-            item {
-                if (error != null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Error: $error",
-                            color = Color.Red
+                when {
+                    error != null -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Error: $error",
+                                color = Color.Red
+                            )
+                        }
+                    }
+
+                    isLoadingCars -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+
+                    else -> {
+                        CategoryList(
+                            categories = categories,
+                            modifier = Modifier
                         )
                     }
-                } else if (isLoadingCars) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp), // ALTURA FIJA
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                } else {
-                    CategoryList(
-                        categories = categories,
-                        modifier = Modifier
-                    )
                 }
             }
+
             item {
                 Spacer(Modifier.height(16.dp))
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -97,49 +106,57 @@ fun MainScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("mas vendidos", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        Text("ver todos", fontSize = 14.sp)
+                        Text("Más vendidos", fontSize = 22.sp, fontWeight = FontWeight.Bold)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    if (isLoadingCars) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp), // ALTURA FIJA
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+                    when {
+                        isLoadingCars -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
-                    } else if (cars.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No hay autos disponibles",
-                                color = Color.Gray
-                            )
+
+                        cars.isEmpty() -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No hay autos disponibles",
+                                    color = Color.Gray
+                                )
+                            }
                         }
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(800.dp) // ALTURA FIJA PARA EL GRID
-                        ) {
-                            PopularList(cars, onCarClick = onCarClick)
+
+                        else -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(800.dp)
+                            ) {
+                                PopularList(
+                                    cars = cars,
+                                    onCarClick = onCarClick
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        // BOTTOM NAV BAR - AGREGADO
         BottomNavBar(
             onProfileClick = onProfileClick,
+            onCartClick = onCartClick,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
@@ -147,3 +164,4 @@ fun MainScreen(
         )
     }
 }
+

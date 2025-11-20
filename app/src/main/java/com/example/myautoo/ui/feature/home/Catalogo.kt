@@ -1,7 +1,7 @@
 package com.example.myautoo.ui.feature.home
 
+import android.R.attr.contentDescription
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,53 +23,57 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.example.myautoo.R
-import com.example.myautoo.data.model.CarModel
+import com.example.myautoo.data.remote.dto.VehiculoDto
 
 @Composable
 fun PopularList(
-    cars: List<CarModel>,
-    onCarClick: (CarModel) -> Unit
+    cars: List<VehiculoDto>,
+    onCarClick: (VehiculoDto) -> Unit
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .padding(horizontal = 8.dp, vertical = 16.dp)
             .fillMaxWidth()
-    ){
-        items(cars){car->
+    ) {
+        items(cars) { car ->
             Card(
                 modifier = Modifier
                     .padding(8.dp)
                     .fillMaxWidth()
-                    .clickable{onCarClick(car)},
+                    .clickable { onCarClick(car) },
                 shape = RoundedCornerShape(10.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ){
-                Column (horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(bottom = 8.dp)
                 ) {
-                    Image(painter = rememberAsyncImagePainter(car.picUrl),
+
+                    // No sé si funcipna je
+                    Image(
+                        painter = rememberAsyncImagePainter(car.imagenVehiculo),
                         contentDescription = null,
                         modifier = Modifier
                             .height(130.dp)
                             .fillMaxWidth(),
                         contentScale = ContentScale.Crop
                     )
+
                     Text(
-                        text = car.title,
+                        text = car.nombre,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = Color.Black,
                         modifier = Modifier.padding(top = 8.dp)
                     )
+
                     Text(
-                        text = "$${car.price}",
+                        text = "$${car.precio}",
                         fontSize = 14.sp,
-                        color = Color.Black,
                         modifier = Modifier.padding(top = 4.dp)
                     )
-                }}
+                }
+            }
         }
     }
 }
